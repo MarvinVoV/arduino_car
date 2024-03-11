@@ -1,18 +1,18 @@
 #include <Arduino.h>
-#include "CenterControlModule.h"
+#include "CenterControl.h"
 
-CenterControlModule centerControlModule;
+CenterControl  centerControl;
+
 
 void setup()
 {
   // 设置波特率
   Serial.begin(9600);
   // 初始化中心控制模块
-  centerControlModule.setup();   
+  centerControl.setup();
 }
 
 void loop()
 {
-  centerControlModule.test();
-  delay(3);
+  centerControl.test();
 }

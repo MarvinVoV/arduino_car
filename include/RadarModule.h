@@ -2,25 +2,18 @@
 #define __RADAR_MODULE_H__
 
 #include <Arduino.h>
+#include "Config.h"
 
 class RadarModule
 {
 public:
-    /**
-     * Constructor
-     */
     RadarModule();
-    /**
-     * Set pin
-     * @param trigPin
-     * @param echoPin
-     */
-    void attach(int trigPin, int echoPin);
-
+    void attach();
     /**
      * 测量，单位cm
      */
     float measure();
+
 
 private:
     int trigPin;

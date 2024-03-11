@@ -1,17 +1,15 @@
 #include "ServoModule.h"
 
-ServoModule::ServoModule()
+ServoModule::ServoModule(RadarModule &radar) : radar(radar),direction(0), distance(0.0)
 {
-    // empty constructor
 }
 
-void ServoModule::attach(int pin)
+void ServoModule::attach()
 {
-    servoPin = pin;
-    pinMode(pin, OUTPUT);
+    pinMode(SERVO_PIN, OUTPUT);
 }
 
-void ServoModule::setAngle(int angle)
+void ServoModule::setDirection(int angle) 
 {
     /**
      * 舵机的控制一般需要一个20ms左右的时基脉冲，高电平一般为0.5ms-2.5ms的角度控制* 脉冲部分，总间隔2ms。 以180度为例，对应关系为：
@@ -22,29 +20,89 @@ void ServoModule::setAngle(int angle)
      * 2.5ms - 180度
      */
     int pulseWidth = (angle * 11) + 500;
-    digitalWrite(servoPin, HIGH);
+    digitalWrite(SERVO_PIN, HIGH);
     delayMicroseconds(pulseWidth);
-    digitalWrite(servoPin, LOW);
+    digitalWrite(SERVO_PIN, LOW);
     delayMicroseconds(25000 - pulseWidth);
 }
 
-void ServoModule::rotate(int minAngle, int maxAngle, int stepSize, ServoCallback<void> callback)
+int ServoModule::getDirection() const
 {
-    for (int angle = minAngle; angle <= maxAngle; angle += stepSize)
+    return direction;
+}
+
+int ServoModule::scan() 
+{
+    setDirection(90);
+    rotate(90, 180, true);
+    setDirection(90);
+    rotate(90, 0, true);
+    setDirection(90);
+    return getDirection();
+}
+
+bool ServoModule::detect() const
+{
+    float distance = radar.measure();
+    if (distance > 0 && distance < 20)
     {
-        // 优化：更加稳定
-        for (int i = 0; i < 2; i++)
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void ServoModule::rotate(int angleFrom, int angleTo, int stepSize, bool measure)
+{
+    if (angleFrom == angleTo)
+    {
+        setDirection(angleFrom);
+        return;
+    }
+
+    if (angleFrom < angleTo)
+    {
+        for (int angle = angleFrom; angle <= angleTo; angle += stepSize)
         {
-            setAngle(angle);
+            // 优化：更加稳定
+            for (int i = 0; i < 2; i++)
+            {
+                setDirection(angle);
+            }
+            if (measure)
+            {
+                float d = radar.measure();
+                if (d > 0 && distance < d)
+                {
+                    distance = d;
+                }
+            }
         }
-        if (callback != NULL)
+    }
+    else
+    {
+        for (int angle = angleFrom; angle >= angleTo; angle -= stepSize)
         {
-            callback(angle);
+            // 优化：更加稳定
+            for (int i = 0; i < 2; i++)
+            {
+                setDirection(angle);
+            }
+            if (measure)
+            {
+                float d = radar.measure();
+                if (d > 0 && distance < d)
+                {
+                    distance = d;
+                }
+            }
         }
     }
 }
 
-void ServoModule::rotate(int minAngle, int maxAngle, ServoCallback<void> callback)
+void ServoModule::rotate(int angleFrom, int angleTo, bool measure)
 {
-    rotate(minAngle, maxAngle, 2, callback);
+    rotate(angleFrom, angleTo, 2, measure);
 }

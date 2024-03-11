@@ -1,3 +1,4 @@
+
 #include "RadarModule.h"
 
 RadarModule::RadarModule()
@@ -5,10 +6,10 @@ RadarModule::RadarModule()
     // empty constructor
 }
 
-void RadarModule::attach(int trigPin, int echoPin)
+void RadarModule::attach()
 {
-    this->trigPin = trigPin;
-    this->echoPin = echoPin;
+    this->trigPin = RADAR_TRIGGER_PIN;
+    this->echoPin = RADAR_ECHO_PIN;
 
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
@@ -24,3 +25,4 @@ float RadarModule::measure()
     float distance = pulseIn(echoPin, HIGH) / 58.0;
     return distance;
 }
+

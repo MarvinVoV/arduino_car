@@ -2,48 +2,43 @@
 #define __SERVO_MODULE_H__
 
 #include <Arduino.h>
+#include "Config.h"
+#include "DirectionController.h"
+#include "RadarModule.h"
 
-template <typename T>
-/**
- * define callback function
- * @param angle
- */
-using ServoCallback = T (*)(int);
-
-class ServoModule
+class ServoModule : public DirectionController
 {
 public:
     /**
-     * Constructor
+     * 构造函数 将自己注册为雷达模块的控制器
      */
-    ServoModule();
-    /**
-     * Set pin
-     * @param pin
-     */
-    void attach(int pin);
-    /**
-     * Set angle
-     * @param angle
-     */
-    void setAngle(int angle);
-
+    ServoModule(RadarModule &radar);
+    void attach();
+    virtual void setDirection(int angle)  override;
+    virtual int getDirection() const override;
+    virtual int scan() override;
+    virtual bool detect() const override;
     /**
      * rotate
-     * @param minAngle 0
-     * @param maxAngle 180
+     * @param angleFrom  min 0
+     * @param angleTo  max 180
      * @param stepSize Recommended value is 2
+     * @param measure
      */
-    void rotate(int minAngle, int maxAngle, int stepSize, ServoCallback<void> callback);
+    void rotate(int angleFrom, int angleTo, int stepSize, bool measure);
 
     /**
      * Rotate with 2 step size
-     * @param minAngle
-     * @param maxAngle
+     * @param angleFrom
+     * @param angleTo
+     * @param measure
      */
-    void rotate(int minAngle, int maxAngle, ServoCallback<void> callback);
+    void rotate(int angleFrom, int angleTo, bool measure);
+
 private:
-    int servoPin;
+    RadarModule &radar;
+    mutable int direction;
+    mutable float distance;
 };
 
 #endif
